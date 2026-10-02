@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NineBlock — Free Business Model Canvas Builder &amp; Template</title>
+<meta name="description" content="NineBlock is a free online business model canvas builder. Draft all 9 blocks, score hypothesis confidence, find your riskiest assumption, print a poster, and save unlimited canvases.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { paper:'#F4F1E8', ink:'#1F3A5F', draft:'#E07A3F', inksoft:'#2E4E77', parchment:'#EFEAD9' },
+    fontFamily: { serif:['Fraunces','Georgia','serif'], mono:['"Space Mono"','ui-monospace','monospace'] }
+  } }
+};
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script id="nineblock-business-model-canvas-lib">
+/* NineBlock — Business Model Canvas Builder: pure logic (no DOM).
+ * Top-level function declarations only; eval'd by the test harness via new Function.
+ * No window/document/localStorage/navigator references in this file.
+ */
+
+const BLOCKS = [
+  {
+    id: 'customer-segments', num: '01', name: 'Customer Segments',
+    tagline: 'Who do you serve?',
+    prompts: [
+      'Name the specific person who feels the pain most acutely — age, job, daily habits.',
+      'Who pays, who uses, and who decides? They are often three different people.',
+      'Is this a mass market, a niche, or a multi-sided platform?',
+      'If you could only serve ONE segment for the next 12 months, which one?'
+    ],
+    example: 'Time-pressed urban professionals (25–40) who want healthy home-cooked meals but hate grocery shopping and meal planning.'
+  },
+  {
+    id: 'value-propositions', num: '02', name: 'Value Propositions',
+    tagline: 'Why should they choose you?',
+    prompts: [
+      'Finish this sentence: "We help [segment] achieve [outcome] without [pain]."',
+      'What job is the customer hiring your product to do?',
+      'List three gains you create and three pains you relieve — be concrete.',
+      'Could a competitor copy this in a weekend? If yes, dig one layer deeper.'
+    ],
+    example: 'Chef-designed healthy dinners ready in 20 minutes, with pre-portioned ingredients — no planning, no waste, no grocery run.'
+  },
+  {
+    id: 'channels', num: '03', name: 'Channels',
+    tagline: 'How do you reach them?',
+    prompts: [
+      'Where does your segment already hang out when they feel the pain?',
+      'Map all five phases: awareness, evaluation, purchase, delivery, after-sales.',
+      'Which channels do you OWN (email list) versus RENT (Instagram ads)?',
+      'What is the cheapest channel you could test this week for under $50?'
+    ],
+    example: 'Instagram/TikTok recipe content (awareness), website quiz (evaluation + purchase), own delivery fleet (delivery), WhatsApp support (after-sales).'
+  },
+  {
+    id: 'customer-relationships', num: '04', name: 'Customer Relationships',
+    tagline: 'How do you win and keep them?',
+    prompts: [
+      'Describe the first 7 days after signup — what does the customer experience?',
+      'Self-service, personal assistance, or community: which fits your segment best?',
+      'How exactly do you turn a one-time buyer into a subscriber?',
+      'What would make a customer recommend you to a friend unprompted?'
+    ],
+    example: 'Personal onboarding call, weekly menu vote by SMS, pause-anytime subscription, one free box for every successful referral.'
+  },
+  {
+    id: 'revenue-streams', num: '05', name: 'Revenue Streams',
+    tagline: 'How does money flow in?',
+    prompts: [
+      'List every way a customer could pay you: one-time, subscription, usage, licensing.',
+      'What is the price — and what is the customer\'s willingness to pay anchored to?',
+      'Which stream is recurring? Recurring revenue is the whole game.',
+      'What is your expected revenue per customer per month in year one?'
+    ],
+    example: 'Weekly subscription at $11.99/serving (2–4 servings, 2–3x/week); add-on marketplace (desserts, smoothies) at 40% margin.'
+  },
+  {
+    id: 'key-resources', num: '06', name: 'Key Resources',
+    tagline: 'What must you own or control?',
+    prompts: [
+      'Without which three assets does the whole model collapse?',
+      'Physical, intellectual, human, financial — which category is scarcest for you?',
+      'What can you rent, borrow, or outsource instead of owning?',
+      'Which resource would be hardest for a competitor to replicate?'
+    ],
+    example: 'Central kitchen + cold-chain logistics, recipe IP and menu-planning algorithm, chef and nutritionist team, $400k seed capital.'
+  },
+  {
+    id: 'key-activities', num: '07', name: 'Key Activities',
+    tagline: 'What must you do excellently?',
+    prompts: [
+      'Which three activities directly deliver your value proposition?',
+      'Production, problem-solving, or platform: which type dominates your model?',
+      'What would you stop doing tomorrow with zero regret?',
+      'Which activity, done 10% better, would move revenue the most?'
+    ],
+    example: 'Weekly menu design and recipe testing, ingredient sourcing and portioning, last-mile cold delivery routing.'
+  },
+  {
+    id: 'key-partnerships', num: '08', name: 'Key Partnerships',
+    tagline: 'Who helps you win?',
+    prompts: [
+      'Which partners reduce your risk, your cost, or your time-to-market?',
+      'For each partner: supplier, distributor, or co-marketing — which type?',
+      'What happens if your most important partner doubles their prices?',
+      'Is there a partner who already owns your customer\'s trust?'
+    ],
+    example: 'Local organic farms (produce supply), packaging supplier (compostable boxes), fitness influencers (co-marketing), payment processor.'
+  },
+  {
+    id: 'cost-structure', num: '09', name: 'Cost Structure',
+    tagline: 'What does it cost to run?',
+    prompts: [
+      'Split every cost into fixed (rent, salaries) versus variable (per unit).',
+      'What is your cost per unit at 100, 1,000, and 10,000 customers?',
+      'Which single cost, cut by 20%, would change the business most?',
+      'Are you cost-driven (leanest operation wins) or value-driven (premium wins)?'
+    ],
+    example: 'Variable: ingredients + packaging ≈ $6.20/box. Fixed: kitchen lease $8k/mo, team $35k/mo. CAC ≈ $28 via paid social.'
+  }
+];
+
+function blockIds() {
+  return BLOCKS.map(function (b) { return b.id; });
+}
+
+function blockById(id) {
+  for (var i = 0; i < BLOCKS.length; i++) {
+    if (BLOCKS[i].id === id) return BLOCKS[i];
+  }
+  return null;
+}
+
+function clampConfidence(n) {
+  var v = Number(n);
+  if (isNaN(v)) return 0;
+  if (v < 0) return 0;
+  if (v > 100) return 100;
+  return Math.round(v);
+}
+
+function importanceWeight(importance) {
+  if (importance === 'high') return 3;
+  if (importance === 'low') return 1;
+  return 2; // medium (default)
+}
+
+function normaliseImportance(importance) {
+  if (importance === 'high' || importance === 'medium' || importance === 'low') return importance;
+  return 'medium';
+}
+
+function confidenceBand(score) {
+  var s = clampConfidence(score);
+  if (s < 25) return 'Blind guess';
+  if (s < 50) return 'Weak hunch';
+  if (s < 75) return 'Early evidence';
+  return 'Strong evidence';
+}
+
+function validateEntryText(text) {
+  var t = String(text == null ? '' : text).trim();
+  if (!t) return { ok: false, error: 'Entry text cannot be empty.' };
+  if (t.length > 240) return { ok: false, error: 'Keep each entry under 240 characters.' };
+  return { ok: true, text: t };
+}
+
+function createEntry(text, confidence, importance, id) {
+  var v = validateEntryText(text);
+  if (!v.ok) return { error: v.error };
+  return {
+    entry: {
+      id: id || ('e' + Math.floor(Math.random() * 1e9).toString(36)),
+      text: v.text,
+      confidence: clampConfidence(confidence),
+      importance: normaliseImportance(importance)
+    }
+  };
+}
+
+function scoreConfidence(entry) {
+  if (!entry) return 0;
+  return clampConfidence(entry.confidence);
+}
+
+/* Risk = importance weight × unproven share. A high-importance guess outranks
+ * a low-importance proven fact. Max = 3 × 100 = 300. */
+function riskScore(entry) {
+  if (!entry) return 0;
+  return importanceWeight(entry.importance) * (100 - clampConfidence(entry.confidence));
+}
+
+function copyCanvas(canvas) {
+  var blocks = {};
+  blockIds().forEach(function (id) {
+    blocks[id] = (canvas && canvas.blocks && canvas.blocks[id] || []).map(function (e) {
+      return { id: e.id, text: e.text, confidence: e.confidence, importance: e.importance };
+    });
+  });
+  return { blocks: blocks, seq: (canvas && canvas.seq) || 1 };
+}
+
+function emptyCanvas() {
+  var blocks = {};
+  blockIds().forEach(function (id) { blocks[id] = []; });
+  return { blocks: blocks, seq: 1 };
+}
+
+function nextEntryId(canvas) {
+  var n = (canvas && canvas.seq) || 1;
+  return 'e' + n;
+}
+
+function addEntry(canvas, blockId, text, confidence, importance) {
+  var c = copyCanvas(canvas);
+  if (!blockById(blockId)) return { error: 'Unknown block: ' + blockId, canvas: c };
+  var v = validateEntryText(text);
+  if (!v.ok) return { error: v.error, canvas: c };
+  var entry = {
+    id: nextEntryId(c),
+    text: v.text,
+    confidence: clampConfidence(confidence),
+    importance: normaliseImportance(importance)
+  };
+  c.seq = (c.seq || 1) + 1;
+  c.blocks[blockId].push(entry);
+  return { canvas: c, entry: entry };
+}
+
+function findEntry(canvas, entryId) {
+  var ids = blockIds();
+  for (var i = 0; i < ids.length; i++) {
+    var list = (canvas.blocks[ids[i]] || []);
+    for (var j = 0; j < list.length; j++) {
+      if (list[j].id === entryId) return { entry: list[j], blockId: ids[i] };
+    }
+  }
+  return null;
+}
+
+function updateEntry(canvas, entryId, patch) {
+  var c = copyCanvas(canvas);
+  var found = findEntry(c, entryId);
+  if (!found) return { error: 'Entry not found: ' + entryId, canvas: c };
+  patch = patch || {};
+  if (patch.text !== undefined) {
+    var v = validateEntryText(patch.text);
+    if (!v.ok) return { error: v.error, canvas: c };
+    found.entry.text = v.text;
+  }
+  if (patch.confidence !== undefined) found.entry.confidence = clampConfidence(patch.confidence);
+  if (patch.importance !== undefined) found.entry.importance = normaliseImportance(patch.importance);
+  return { canvas: c, entry: found.entry };
+}
+
+function deleteEntry(canvas, entryId) {
+  var c = copyCanvas(canvas);
+  var ids = blockIds();
+  for (var i = 0; i < ids.length; i++) {
+    var list = c.blocks[ids[i]];
+    for (var j = 0; j < list.length; j++) {
+      if (list[j].id === entryId) {
+        list.splice(j, 1);
+        return { canvas: c };
+      }
+    }
+  }
+  return { error: 'Entry not found: ' + entryId, canvas: c };
+}
+
+function moveEntry(canvas, entryId, toBlockId) {
+  var c = copyCanvas(canvas);
+  if (!blockById(toBlockId)) return { error: 'Unknown block: ' + toBlockId, canvas: c };
+  var found = findEntry(c, entryId);
+  if (!found) return { error: 'Entry not found: ' + entryId, canvas: c };
+  if (found.blockId === toBlockId) return { canvas: c };
+  var list = c.blocks[found.blockId];
+  for (var j = 0; j < list.length; j++) {
+    if (list[j].id === entryId) { list.splice(j, 1); break; }
+  }
+  c.blocks[toBlockId].push(found.entry);
+  return { canvas: c };
+}
+
+/* Flattened view: [{ entry, blockId, blockName }] */
+function canvasEntries(canvas) {
+  var out = [];
+  blockIds().forEach(function (id) {
+    var b = blockById(id);
+    (canvas.blocks[id] || []).forEach(function (e) {
+      out.push({ entry: e, blockId: id, blockName: b.name });
+    });
+  });
+  return out;
+}
+
+/* Riskiest assumptions: lowest-confidence, highest-importance entries first. */
+function findRiskiestAssumptions(canvas, limit) {
+  var n = limit == null ? 5 : Math.max(1, Math.min(25, Math.floor(limit)));
+  var rows = canvasEntries(canvas).map(function (row) {
+    return {
+      entry: row.entry,
+      blockId: row.blockId,
+      blockName: row.blockName,
+      risk: riskScore(row.entry),
+      confidence: scoreConfidence(row.entry),
+      importance: row.entry.importance
+    };
+  });
+  rows.sort(function (a, b) {
+    if (b.risk !== a.risk) return b.risk - a.risk;
+    if (a.confidence !== b.confidence) return a.confidence - b.confidence;
+    return importanceWeight(b.importance) - importanceWeight(a.importance);
+  });
+  return rows.slice(0, n);
+}
+
+function blockCoverage(canvas) {
+  var covered = 0;
+  blockIds().forEach(function (id) {
+    if ((canvas.blocks[id] || []).length > 0) covered++;
+  });
+  return covered;
+}
+
+function averageConfidence(canvas) {
+  var rows = canvasEntries(canvas);
+  if (!rows.length) return 0;
+  var sum = rows.reduce(function (acc, r) { return acc + scoreConfidence(r.entry); }, 0);
+  return Math.round(sum / rows.length);
+}
+
+function canvasHealth(canvas) {
+  var rows = canvasEntries(canvas);
+  var riskiest = findRiskiestAssumptions(canvas, 3);
+  return {
+    totalEntries: rows.length,
+    blocksCovered: blockCoverage(canvas),
+    blocksTotal: BLOCKS.length,
+    averageConfidence: averageConfidence(canvas),
+    criticalRisks: rows.filter(function (r) {
+      return r.entry.importance === 'high' && scoreConfidence(r.entry) < 40;
+    }).length,
+    topRisk: riskiest.length ? riskiest[0] : null
+  };
+}
+
+function validateCanvas(canvas) {
+  var issues = [];
+  var rows = canvasEntries(canvas);
+  if (!rows.length) {
+    return { ok: false, issues: [{ level: 'error', message: 'Your canvas is empty. Add at least one entry to any block to get started.' }] };
+  }
+  blockIds().forEach(function (id) {
+    var b = blockById(id);
+    if ((canvas.blocks[id] || []).length === 0) {
+      issues.push({ level: 'warning', blockId: id, message: '"' + b.name + '" is empty — every block of the canvas deserves at least one hypothesis.' });
+    }
+  });
+  rows.forEach(function (r) {
+    if (r.entry.importance === 'high' && scoreConfidence(r.entry) < 40) {
+      issues.push({ level: 'warning', blockId: r.blockId, message: 'High-importance entry in "' + r.blockName + '" is mostly a guess: "' + r.entry.text.slice(0, 60) + '".' });
+    }
+  });
+  return { ok: issues.filter(function (i) { return i.level === 'error'; }).length === 0, issues: issues };
+}
+
+function serializeCanvas(canvas) {
+  return JSON.stringify(copyCanvas(canvas));
+}
+
+function deserializeCanvas(str) {
+  try {
+    var data = JSON.parse(str);
+    if (!data || typeof data !== 'object' || !data.blocks) return { error: 'Not a valid NineBlock canvas file.' };
+    var c = emptyCanvas();
+    var okAny = false;
+    blockIds().forEach(function (id) {
+      var list = data.blocks[id];
+      if (Array.isArray(list)) {
+        list.forEach(function (e) {
+          if (e && typeof e.text === 'string' && e.text.trim()) {
+            c.blocks[id].push({
+              id: String(e.id || ('e' + Math.floor(Math.random() * 1e9).toString(36))),
+              text: String(e.text).trim().slice(0, 240),
+              confidence: clampConfidence(e.confidence),
+              importance: normaliseImportance(e.importance)
+            });
+            okAny = true;
+          }
+        });
+      }
+    });
+    c.seq = Number(data.seq) > 0 ? Math.floor(Number(data.seq)) : 1;
+    if (!okAny) return { error: 'This file contains no canvas entries.' };
+    return { canvas: c };
+  } catch (e) {
+    return { error: 'Could not parse this file as a NineBlock canvas.' };
+  }
+}
+
+/* ---------- save slots (pure; persistence wired in the page) ---------- */
+
+function validateSlotName(name) {
+  var t = String(name == null ? '' : name).trim();
+  if (!t) return { ok: false, error: 'Give your canvas a name.' };
+  if (t.length > 60) return { ok: false, error: 'Keep the name under 60 characters.' };
+  return { ok: true, name: t };
+}
+
+function sortSlots(slots) {
+  return (slots || []).slice().sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
+}
+
+function getSlot(slots, id) {
+  for (var i = 0; i < (slots || []).length; i++) {
+    if (slots[i].id === id) return slots[i];
+  }
+  return null;
+}
+
+function createSlot(slots, name, ts) {
+  var v = validateSlotName(name);
+  if (!v.ok) return { error: v.error, slots: slots };
+  var now = ts == null ? Date.now() : ts;
+  var list = (slots || []).slice();
+  var maxN = 0;
+  list.forEach(function (s) {
+    var m = /^s(\d+)$/.exec(s.id || '');
+    if (m) maxN = Math.max(maxN, parseInt(m[1], 10));
+  });
+  var slot = { id: 's' + (maxN + 1), name: v.name, canvas: emptyCanvas(), updatedAt: now };
+  list.push(slot);
+  return { slots: list, slot: slot };
+}
+
+function renameSlot(slots, id, name, ts) {
+  var v = validateSlotName(name);
+  if (!v.ok) return { error: v.error, slots: slots };
+  var list = (slots || []).map(function (s) {
+    if (s.id === id) return { id: s.id, name: v.name, canvas: copyCanvas(s.canvas), updatedAt: ts == null ? Date.now() : ts };
+    return s;
+  });
+  if (!getSlot(slots, id)) return { error: 'Canvas not found.', slots: slots };
+  return { slots: list };
+}
+
+function deleteSlot(slots, id) {
+  if (!getSlot(slots, id)) return { error: 'Canvas not found.', slots: slots };
+  var list = (slots || []).filter(function (s) { return s.id !== id; });
+  if (!list.length) return { error: 'You need at least one canvas — create a new one first.', slots: slots };
+  return { slots: list };
+}
+
+function duplicateSlot(slots, id, ts) {
+  var src = getSlot(slots, id);
+  if (!src) return { error: 'Canvas not found.', slots: slots };
+  var r = createSlot(slots, src.name + ' (copy)', ts);
+  if (r.error) return r;
+  var list = r.slots.map(function (s) {
+    if (s.id === r.slot.id) return { id: s.id, name: s.name, canvas: copyCanvas(src.canvas), updatedAt: s.updatedAt };
+    return s;
+  });
+  return { slots: list, slot: getSlot(list, r.slot.id) };
+}
+
+function touchSlot(slots, id, canvas, ts) {
+  var list = (slots || []).map(function (s) {
+    if (s.id === id) return { id: s.id, name: s.name, canvas: copyCanvas(canvas), updatedAt: ts == null ? Date.now() : ts };
+    return s;
+  });
+  if (!getSlot(slots, id)) return { error: 'Canvas not found.', slots: slots };
+  return { slots: list };
+}
+
+/* ---------- worked example: FreshBox meal-kit ---------- */
+
+function sampleCanvas() {
+  var c = emptyCanvas();
+  var data = [
+    ['customer-segments', 'Time-pressed urban professionals (25–40) who hate meal planning', 78, 'high'],
+    ['customer-segments', 'New parents wanting healthy family dinners', 45, 'medium'],
+    ['value-propositions', 'Chef-designed dinners ready in 20 min, zero planning or waste', 72, 'high'],
+    ['value-propositions', 'Pre-portioned ingredients = no grocery run', 66, 'medium'],
+    ['channels', 'Instagram/TikTok recipe content for awareness', 58, 'high'],
+    ['channels', 'Website quiz that converts to first-box purchase', 35, 'high'],
+    ['customer-relationships', 'Pause-anytime subscription + weekly menu vote by SMS', 62, 'high'],
+    ['revenue-streams', 'Weekly subscription at $11.99/serving', 55, 'high'],
+    ['revenue-streams', 'Add-on marketplace (desserts, smoothies) at 40% margin', 30, 'medium'],
+    ['key-resources', 'Central kitchen + cold-chain logistics', 70, 'high'],
+    ['key-resources', 'Menu-planning algorithm and recipe IP', 48, 'medium'],
+    ['key-activities', 'Weekly menu design and recipe testing', 74, 'high'],
+    ['key-activities', 'Last-mile cold delivery routing', 40, 'high'],
+    ['key-partnerships', 'Local organic farms for produce supply', 52, 'medium'],
+    ['cost-structure', 'Ingredients + packaging ≈ $6.20/box (variable)', 68, 'high'],
+    ['cost-structure', 'Kitchen lease $8k/mo + team $35k/mo (fixed)', 80, 'medium']
+  ];
+  data.forEach(function (d) {
+    var r = addEntry(c, d[0], d[1], d[2], d[3]);
+    if (!r.error) c = r.canvas;
+  });
+  return c;
+}
+
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+</script>
+<style>
+  body { background-color:#F4F1E8; color:#1F3A5F;
+    background-image: linear-gradient(rgba(31,58,95,.055) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(31,58,95,.055) 1px, transparent 1px);
+    background-size: 28px 28px; }
+  .rule-double { border-bottom: 1px solid #1F3A5F; box-shadow: 0 4px 0 -3px #1F3A5F; }
+  /* canvas grid areas (classic BMC layout) */
+  #canvas-grid { display:grid; gap:14px; grid-template-columns: repeat(5, minmax(0,1fr));
+    grid-template-areas: "kp ka vp cr cs" "kp kr vp ch cs" "cost cost cost rev rev"; }
+  @media (max-width: 1023px) {
+    #canvas-grid { grid-template-columns: repeat(2, minmax(0,1fr));
+      grid-template-areas: "vp vp" "cs cs" "cr ch" "ka kr" "kp kp" "cost cost" "rev rev"; }
+  }
+  @media (max-width: 559px) {
+    #canvas-grid { grid-template-columns: 1fr;
+      grid-template-areas: "cs" "vp" "ch" "cr" "ka" "kr" "kp" "rev" "cost"; }
+  }
+  .block-card { position:relative; background:#FBF9F2; border:1.5px solid #1F3A5F; border-radius:6px;
+    box-shadow: 3px 3px 0 rgba(31,58,95,.16); display:flex; flex-direction:column; min-height:180px; }
+  .block-card .reg { position:absolute; width:14px; height:14px; pointer-events:none; opacity:.55; }
+  .block-card .reg::before, .block-card .reg::after { content:''; position:absolute; background:#1F3A5F; }
+  .block-card .reg::before { left:6px; top:0; width:2px; height:14px; }
+  .block-card .reg::after { top:6px; left:0; height:2px; width:14px; }
+  .reg.tl{top:-8px;left:-8px;} .reg.tr{top:-8px;right:-8px;} .reg.bl{bottom:-8px;left:-8px;} .reg.br{bottom:-8px;right:-8px;}
+  .entry-card { background:#fff; border:1px solid rgba(31,58,95,.35); border-left:5px solid #1F3A5F;
+    border-radius:4px; box-shadow:1px 2px 0 rgba(31,58,95,.12); transition: transform .12s ease, box-shadow .12s ease; }
+  .entry-card:hover { transform: translateY(-1px); box-shadow:2px 4px 0 rgba(31,58,95,.16); }
+  .entry-card.risk-flash { border-color:#E07A3F; border-left-color:#E07A3F; outline:2px dashed #E07A3F; outline-offset:3px;
+    animation: pulse-risk 1.4s ease-in-out infinite; }
+  @keyframes pulse-risk { 0%,100%{ box-shadow:1px 2px 0 rgba(31,58,95,.12);} 50%{ box-shadow:0 0 0 6px rgba(224,122,63,.28);} }
+  .confbar { height:6px; border-radius:9999px; background:#E7E0CC; overflow:hidden; }
+  .confbar > div { height:100%; border-radius:9999px; }
+  input[type=range].confslider { -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:9999px;
+    background: linear-gradient(90deg,#C0392B,#E07A3F 45%,#2E7D4F); outline:none; border:1px solid #1F3A5F; }
+  input[type=range].confslider::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; border-radius:50%;
+    background:#FBF9F2; border:2.5px solid #1F3A5F; cursor:pointer; box-shadow:1px 1px 0 rgba(31,58,95,.4); }
+  input[type=range].confslider::-moz-range-thumb { width:20px; height:20px; border-radius:50%;
+    background:#FBF9F2; border:2.5px solid #1F3A5F; cursor:pointer; }
+  .btn-draft { border:1.5px solid #1F3A5F; border-radius:6px; box-shadow:2px 2px 0 rgba(31,58,95,.9);
+    transition: transform .1s ease, box-shadow .1s ease; }
+  .btn-draft:hover { transform: translate(-1px,-1px); box-shadow:3px 3px 0 rgba(31,58,95,.9); }
+  .btn-draft:active { transform: translate(1px,1px); box-shadow:1px 1px 0 rgba(31,58,95,.9); }
+  .modal-backdrop { background: rgba(31,58,95,.55); backdrop-filter: blur(2px); }
+  .stamp { display:inline-block; border:2px solid #E07A3F; color:#E07A3F; border-radius:4px;
+    transform: rotate(-3deg); letter-spacing:.14em; }
+  .print-only { display:none; }
+  @media print {
+    @page { size: A3 landscape; margin: 9mm; }
+    body { background:#fff !important; background-image:none !important; }
+    .no-print { display:none !important; }
+    .print-only { display:block !important; }
+    #canvas-grid { gap:6px; grid-template-columns: repeat(5, minmax(0,1fr)) !important;
+      grid-template-areas: "kp ka vp cr cs" "kp kr vp ch cs" "cost cost cost rev rev" !important; }
+    .block-card { min-height:0; box-shadow:none; break-inside:avoid; }
+    .entry-card.risk-flash { animation:none; }
+    main { max-width:none !important; padding:0 !important; }
+  }
+</style>
+</head>
+<body id="top" class="font-mono antialiased">
+
+<!-- ============ HEADER ============ -->
+<header class="no-print sticky top-0 z-40 border-b-2 border-ink" style="background:#F4F1E8f2">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-3">
+      <span aria-hidden="true" class="grid grid-cols-3 gap-[3px] w-8 h-8">
+        <span class="bg-ink rounded-[2px]"></span><span class="bg-ink rounded-[2px]"></span><span class="bg-ink rounded-[2px]"></span>
+        <span class="bg-ink rounded-[2px]"></span><span class="bg-draft rounded-[2px]"></span><span class="bg-ink rounded-[2px]"></span>
+        <span class="bg-ink rounded-[2px]"></span><span class="bg-ink rounded-[2px]"></span><span class="bg-ink rounded-[2px]"></span>
+      </span>
+      <span class="font-serif font-black text-2xl tracking-tight text-ink">NineBlock</span>
+    </a>
+    <nav class="flex items-center gap-2 sm:gap-4 text-sm">
+      <a href="#top" class="px-3 py-1.5 rounded hover:bg-ink hover:text-paper transition">Home</a>
+      <a href="https://fixoraa.tech" class="btn-draft bg-draft text-white font-bold px-3 py-1.5 text-sm">More Tools</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ TOP AD ============ -->
+<div class="no-print mx-auto max-w-6xl px-4 sm:px-6 pt-4" role="complementary" aria-label="Advertisement">
+  <div class="mx-auto text-center" style="max-width:728px">
+    <span class="block text-[10px] tracking-[0.18em] uppercase text-slate-400 mb-1.5">Advertisement</span>
+    <div class="flex justify-center overflow-hidden">
+      <div class="origin-top scale-[0.44] sm:scale-100 shrink-0">
+        <script>
+          atOptions = { 'key' : '4e68ac77881c17fe128a46565d9a4e8c', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+        </script>
+        <script src="https://www.highrevenueformat.com/4e68ac77881c17fe128a46565d9a4e8c/invoke.js"></script>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="mx-auto max-w-6xl px-4 sm:px-6">
+
+  <!-- ============ TOOL INTRO ============ -->
+  <section class="no-print pt-8 pb-5 text-center">
+    <span class="stamp font-bold text-[11px] sm:text-xs px-3 py-1.5 uppercase">Unlimited Free Usage</span>
+    <h1 class="font-serif font-black text-ink text-3xl sm:text-5xl mt-4 leading-tight">The Business Model Canvas,<br class="hidden sm:block"> drawn like an architect.</h1>
+    <p class="mt-3 max-w-2xl mx-auto text-sm sm:text-base text-inksoft">Draft all nine blocks of your business model on a drafting-table grid. Score how much <em>evidence</em> backs each hypothesis, let NineBlock surface your riskiest assumption, then print a one-page poster. No signup, no paywall, no watermark — everything stays in your browser.</p>
+  </section>
+
+  <!-- ============ TOOLBAR ============ -->
+  <section class="no-print mb-5 rounded-lg border-2 border-ink bg-[#FBF9F2] p-3 sm:p-4" style="box-shadow:4px 4px 0 rgba(31,58,95,.18)">
+    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+      <label class="text-[11px] uppercase tracking-[0.14em] font-bold text-inksoft" for="slot-select">Canvas</label>
+      <select id="slot-select" class="font-mono text-sm border-[1.5px] border-ink rounded-md bg-paper px-2 py-2 max-w-[180px] sm:max-w-xs"></select>
+      <button id="btn-manage" class="btn-draft bg-paper text-ink text-sm font-bold px-3 py-2">Manage…</button>
+      <span class="flex-1"></span>
+      <button id="btn-sample" class="btn-draft bg-paper text-ink text-sm px-3 py-2" title="Load a worked meal-kit example">Load sample</button>
+      <button id="btn-export" class="btn-draft bg-paper text-ink text-sm px-3 py-2">Export JSON</button>
+      <button id="btn-import" class="btn-draft bg-paper text-ink text-sm px-3 py-2">Import</button>
+      <input type="file" id="file-import" accept="application/json,.json" class="hidden">
+      <button id="btn-risk" class="btn-draft bg-draft text-white text-sm font-bold px-3 py-2">🎯 Riskiest assumptions</button>
+      <button id="btn-print" class="btn-draft bg-ink text-paper text-sm font-bold px-3 py-2">🖨 Print poster</button>
+    </div>
+    <div id="health-strip" class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs sm:text-sm text-inksoft"></div>
+    <div id="canvas-issues" class="mt-2 text-xs sm:text-sm"></div>
+  </section>
+
+  <!-- print poster header (print only) -->
+  <div id="poster-head" class="print-only mb-3">
+    <div class="flex items-end justify-between border-b-2 border-ink pb-2">
+      <div>
+        <div class="font-serif font-black text-3xl">NineBlock <span class="text-lg font-medium">/ Business Model Canvas</span></div>
+        <div id="poster-sub" class="font-mono text-xs mt-1"></div>
+      </div>
+      <div class="font-mono text-[10px] text-right">CONFIDENTIAL DRAFT<br><span id="poster-date"></span></div>
+    </div>
+  </div>
+
+  <!-- ============ CANVAS GRID ============ -->
+  <section aria-label="Business model canvas" class="pb-6">
+    <div id="canvas-grid"></div>
+  </section>
+
+  <!-- ============ RISK PANEL ============ -->
+  <section id="risk-panel" class="no-print hidden mb-6 rounded-lg border-2 border-draft bg-[#FBF9F2] p-4 sm:p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-serif font-bold text-xl text-ink">🎯 Riskiest assumptions <span class="text-sm font-mono font-normal text-inksoft">— test these first</span></h2>
+      <button id="btn-risk-close" class="text-sm underline">close</button>
+    </div>
+    <p class="text-xs sm:text-sm text-inksoft mb-4">Ranked by <strong>risk = importance × unproven share</strong>. A high-importance guess always outranks a low-importance fact. Click an entry to jump to it on the canvas.</p>
+    <ol id="risk-list" class="space-y-3"></ol>
+  </section>
+
+</main>
+
+<!-- ============ BOTTOM AD ============ -->
+<div class="no-print mx-auto max-w-6xl px-4 sm:px-6 pb-4" role="complementary" aria-label="Advertisement">
+  <div class="mx-auto text-center" style="max-width:728px">
+    <span class="block text-[10px] tracking-[0.18em] uppercase text-slate-400 mb-1.5">Advertisement</span>
+    <div class="flex justify-center overflow-hidden">
+      <script async src="https://js.wpadmngr.com/static/adManager.js" data-admpid="464498"></script>
+    </div>
+  </div>
+</div>
+
+<!-- ============ COACH MODAL ============ -->
+<div id="coach-modal" class="no-print hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+  <div class="bg-[#FBF9F2] border-2 border-ink rounded-lg max-w-xl w-full max-h-[88vh] overflow-y-auto" style="box-shadow:6px 6px 0 rgba(31,58,95,.35)">
+    <div class="sticky top-0 bg-ink text-paper px-5 py-4 flex items-start justify-between rounded-t-md">
+      <div>
+        <div id="coach-kicker" class="text-[11px] uppercase tracking-[0.2em] text-draft font-bold"></div>
+        <h3 id="coach-title" class="font-serif font-black text-2xl"></h3>
+        <p id="coach-tagline" class="text-sm opacity-80 italic font-serif"></p>
+      </div>
+      <button data-close="coach-modal" class="text-paper/70 hover:text-paper text-2xl leading-none px-2" aria-label="Close">×</button>
+    </div>
+    <div class="p-5 sm:p-6">
+      <h4 class="font-bold text-sm uppercase tracking-[0.14em] text-draft mb-3">Coach prompts — answer in your own words</h4>
+      <ol id="coach-prompts" class="space-y-3 text-sm sm:text-[15px]"></ol>
+      <h4 class="font-bold text-sm uppercase tracking-[0.14em] text-draft mt-6 mb-3">Worked example <span class="normal-case font-normal text-inksoft">(FreshBox meal-kit)</span></h4>
+      <div class="border-l-4 border-draft bg-paper rounded-r-md p-4 text-sm sm:text-[15px] italic" id="coach-example"></div>
+      <button id="coach-add" class="btn-draft bg-draft text-white font-bold text-sm px-4 py-2.5 mt-6 w-full sm:w-auto">✏️ Add my entry to this block</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ENTRY MODAL ============ -->
+<div id="entry-modal" class="no-print hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+  <div class="bg-[#FBF9F2] border-2 border-ink rounded-lg max-w-lg w-full max-h-[88vh] overflow-y-auto" style="box-shadow:6px 6px 0 rgba(31,58,95,.35)">
+    <div class="bg-ink text-paper px-5 py-4 flex items-center justify-between rounded-t-md">
+      <h3 id="entry-modal-title" class="font-serif font-bold text-xl">Add entry</h3>
+      <button data-close="entry-modal" class="text-paper/70 hover:text-paper text-2xl leading-none px-2" aria-label="Close">×</button>
+    </div>
+    <div class="p-5 sm:p-6 space-y-5">
+      <div>
+        <label class="text-[11px] uppercase tracking-[0.16em] font-bold text-inksoft">Block</label>
+        <div id="entry-block-name" class="font-serif font-bold text-lg text-ink mt-1"></div>
+      </div>
+      <div>
+        <label for="entry-text" class="text-[11px] uppercase tracking-[0.16em] font-bold text-inksoft">Your hypothesis <span class="normal-case font-normal">(max 240 chars)</span></label>
+        <textarea id="entry-text" rows="3" maxlength="240" class="mt-1 w-full border-[1.5px] border-ink rounded-md bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-draft" placeholder="e.g. Busy parents will pay $12/serving for 20-minute healthy dinners"></textarea>
+        <div class="text-right text-[11px] text-inksoft"><span id="entry-count">0</span>/240</div>
+      </div>
+      <div>
+        <div class="flex items-baseline justify-between">
+          <label for="entry-conf" class="text-[11px] uppercase tracking-[0.16em] font-bold text-inksoft">Confidence — how much evidence backs this?</label>
+          <span class="font-bold text-sm"><span id="entry-conf-val">50</span>% · <span id="entry-conf-band" class="text-draft">Early evidence</span></span>
+        </div>
+        <input type="range" id="entry-conf" min="0" max="100" value="50" step="1" class="confslider mt-2" aria-label="Confidence from 0 to 100">
+        <div class="flex justify-between text-[10px] uppercase tracking-wider text-inksoft mt-1"><span>← Pure guess</span><span>Proven fact →</span></div>
+      </div>
+      <div>
+        <span class="text-[11px] uppercase tracking-[0.16em] font-bold text-inksoft">Importance — what breaks if this is wrong?</span>
+        <div class="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Importance">
+          <button type="button" data-imp="low" class="imp-btn btn-draft bg-paper text-sm py-2">Low</button>
+          <button type="button" data-imp="medium" class="imp-btn btn-draft bg-paper text-sm py-2">Medium</button>
+          <button type="button" data-imp="high" class="imp-btn btn-draft bg-paper text-sm py-2">High</button>
+        </div>
+      </div>
+      <div id="entry-error" class="hidden text-sm text-red-700 bg-red-50 border border-red-300 rounded-md px-3 py-2"></div>
+      <div class="flex gap-2 justify-end">
+        <button data-close="entry-modal" class="btn-draft bg-paper text-sm px-4 py-2.5">Cancel</button>
+        <button id="entry-save" class="btn-draft bg-ink text-paper text-sm font-bold px-5 py-2.5">Save entry</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SLOTS MODAL ============ -->
+<div id="slots-modal" class="no-print hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+  <div class="bg-[#FBF9F2] border-2 border-ink rounded-lg max-w-lg w-full max-h-[88vh] overflow-y-auto" style="box-shadow:6px 6px 0 rgba(31,58,95,.35)">
+    <div class="bg-ink text-paper px-5 py-4 flex items-center justify-between rounded-t-md">
+      <h3 class="font-serif font-bold text-xl">My canvases</h3>
+      <button data-close="slots-modal" class="text-paper/70 hover:text-paper text-2xl leading-none px-2" aria-label="Close">×</button>
+    </div>
+    <div class="p-5 sm:p-6">
+      <div class="flex gap-2 mb-4">
+        <input id="slot-new-name" maxlength="60" placeholder="Name a new canvas…" class="flex-1 border-[1.5px] border-ink rounded-md bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-draft">
+        <button id="slot-create" class="btn-draft bg-draft text-white text-sm font-bold px-4 py-2">+ New</button>
+      </div>
+      <div id="slot-new-error" class="hidden text-sm text-red-700 bg-red-50 border border-red-300 rounded-md px-3 py-2 mb-3"></div>
+      <ul id="slot-list" class="space-y-2"></ul>
+      <p class="text-[11px] text-inksoft mt-4">Canvases are stored privately in this browser's local storage — nothing is uploaded anywhere.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SEO ARTICLE ============ -->
+<article class="no-print mx-auto max-w-3xl px-4 sm:px-6 pb-10 font-serif text-ink" id="seo-article">
+  <h2 class="font-black text-2xl sm:text-3xl mt-8 mb-4">The Complete Guide to the Business Model Canvas (With a Free Builder)</h2>
+
+  <h3 class="font-bold text-xl mt-7 mb-2">What is a business model canvas?</h3>
+  <p class="mb-4 text-[17px] leading-relaxed">A business model canvas is a one-page strategic template that describes how an organization creates, delivers, and captures value. Instead of a forty-page business plan that nobody reads, the entire model fits on a single sheet divided into nine building blocks. It was popularized by Alexander Osterwalder and Yves Pigneur in their 2010 book <em>Business Model Generation</em>, and it has since become the default language of founders, product teams, and investors worldwide.</p>
+  <p class="mb-4 text-[17px] leading-relaxed">The power of the canvas is that it forces clarity. You cannot hide a vague idea behind nine empty boxes. When you sit down with a business model canvas template — whether printed on paper or drawn in a free online business model canvas builder like NineBlock — every assumption is exposed: who exactly is the customer, why they should care, how money flows in, and what it all costs. Teams that sketch their model on a canvas spot fatal flaws in an afternoon instead of discovering them after a year of building.</p>
+
+  <h3 class="font-bold text-xl mt-7 mb-2">The nine building blocks, explained</h3>
+  <p class="mb-4 text-[17px] leading-relaxed">The classic canvas reads right to left in a loose narrative: start with the customer, define the value you offer them, then work backwards through the machinery that delivers it.</p>
+  <p class="mb-4 text-[17px] leading-relaxed"><strong>1. Customer Segments.</strong> Who are you creating value for? The most common mistake founders make is writing "everyone." A strong canvas names a specific, reachable group of people with a shared pain. Be precise: "time-pressed urban professionals aged 25–40 who order takeout four nights a week" beats "busy people." If you serve several segments, rank them — you can only delight one group first.</p>
+  <p class="mb-4 text-[17px] leading-relaxed"><strong>2. Value Propositions.</strong> Why should a customer choose you over every alternative, including doing nothing? A value proposition is not a feature list; it is the outcome the customer gets. The sharpest test is the sentence: "We help [segment] achieve [outcome] without [pain]." If a competitor could copy your proposition in a weekend, you have not dug deep enough.</p>
+  <p class="mb-4 text-[17px] leading-relaxed"><strong>3. Channels.</strong> How do you reach customers, and how do they buy? Map all five phases: awareness, evaluation, purchase, delivery, and after-sales. Notice which channels you own (your email list, your store) versus rent (social media ads, marketplaces). Rented channels can change their prices overnight; owned channels compound.</p>
+  <p class="mb-4 text-[17px] leading-relaxed"><strong>4. Customer Relationships.</strong> How do you acquire, keep, and grow customers? Relationships range from fully self-service (a SaaS signup flow) to deeply personal (a dedicated account manager) to community-driven (users helping users). Match the relationship to the segment: enterprise buyers expect a human; consumers expect instant self-service.</p>
+  <p class="mb-4 text-[17px] leading-relaxed"><strong>5. Revenue Streams.</strong> How does money flow in? List every stream — one-time sales, subscriptions, usage fees, licensing, advertising. Then ask which streams recur. Recurring revenue is the whole game for most modern businesses because it makes growth predictable and the company dramatically more valuable. Anchor your price to the customer's willingness to pay, not to your costs.</p>
+  <p class="mb-4 text-[17px] leading-relaxed"><strong>6. Key Resources.</strong> What assets must you own or control for the model to work? Think in four categories: physical (kitchens, warehouses), intellectual (brand, patents, data), human (a rare team), and financial (cash reserves, credit lines). Circle the one resource a competitor would find hardest to replicate — that is your moat.</p>
+  <p class="mb-4 text-[17px] leading-relaxed"><strong>7. Key Activities.</strong> What must you do excellently, day after day? Activities fall into three types: production (making things), problem-solving (consulting, software), and platform or network management (marketplaces). Most startups die doing ten things adequately instead of three things brilliantly — the canvas forces you to choose.</p>
+  <p class="mb-4 text-[17px] leading-relaxed"><strong>8. Key Partnerships.</strong> Who helps you win? Partners reduce risk, cut costs, or compress time-to-market: suppliers, distributors, co-marketing allies, technology providers. For each partner, ask the uncomfortable question: what happens if they double their prices or walk away? If the answer is "we die," you have a concentration risk to fix.</p>
+  <p class="mb-4 text-[17px] leading-relaxed"><strong>9. Cost Structure.</strong> What does the model cost to run? Split everything into fixed costs (rent, salaries — paid whether you sell one unit or a million) and variable costs (ingredients, payment fees — scaling with volume). Then compute your unit economics at 100, 1,000, and 10,000 customers. If the numbers only work at fantasy scale, the model is broken on paper, which is the cheapest place to discover that.</p>
+
+  <h3 class="font-bold text-xl mt-7 mb-2">Business model canvas vs. lean canvas: which should you use?</h3>
+  <p class="mb-4 text-[17px] leading-relaxed">Search for a lean canvas online and you will find a close cousin of the business model canvas, adapted by Ash Maurya specifically for startups. The lean canvas replaces four blocks: Key Partners becomes Problem, Key Activities becomes Solution, Key Resources becomes Key Metrics, and Customer Relationships becomes Unfair Advantage. Everything else stays the same.</p>
+  <p class="mb-4 text-[17px] leading-relaxed">Which one is better? It depends on your stage. If you are an early-stage founder still searching for product-market fit, the lean canvas is sharper because it forces you to name the top three problems before you fall in love with your solution, and it replaces the fuzzy "customer relationships" block with "unfair advantage" — the thing that cannot be copied. If you are mapping an existing business, pitching investors, or redesigning a working model, the classic business model canvas template is the richer tool, because partnerships, activities, and resources matter enormously once you are operating at scale.</p>
+  <p class="mb-4 text-[17px] leading-relaxed">Many teams use both: the lean canvas to find the idea, the business model canvas to scale it. NineBlock follows the classic nine-block layout because it is the format investors, accelerators, and business schools expect to see on the wall — and because its nine boxes map beautifully onto a printable one-page poster.</p>
+
+  <h3 class="font-bold text-xl mt-7 mb-2">A canvas is a set of hypotheses — so score them</h3>
+  <p class="mb-4 text-[17px] leading-relaxed">Here is the insight most canvas guides miss: every sticky note on your canvas is not a fact. It is a hypothesis. "Busy parents will pay $12 per serving" is a guess until a busy parent actually pays. Treating guesses and facts as equals is how founders build for a year on a foundation of wishes.</p>
+  <p class="mb-4 text-[17px] leading-relaxed">The professional move is to attach a confidence score to every entry: 0% means "pure guess," 100% means "proven by evidence — customers paid, data confirmed it." Then rank your assumptions by risk, where risk equals importance multiplied by how unproven the entry is. A high-importance guess ("customers will pay $12/serving," confidence 20%) is an existential threat; a low-importance guess ("our brand color should be teal," confidence 20%) is trivia. This is exactly what NineBlock's riskiest-assumption finder does automatically: it scans all nine blocks and surfaces the handful of beliefs you must validate first, before you write a line of code or sign a lease.</p>
+  <p class="mb-4 text-[17px] leading-relaxed">Validating the riskiest assumption is usually cheap. Interview ten target customers. Build a landing page and measure signups. Sell ten units manually before automating anything. Each experiment moves a confidence slider from guess toward evidence — and a canvas full of high-confidence entries is a business you can defend in front of any investor.</p>
+
+  <h3 class="font-bold text-xl mt-7 mb-2">Five mistakes that ruin a business model canvas</h3>
+  <p class="mb-4 text-[17px] leading-relaxed"><strong>Mistake 1: one entry per block.</strong> A block with a single sticky note is a block you have not thought about. Aim for three to five entries per block, then prune. <strong>Mistake 2: features instead of value.</strong> "AI-powered dashboard" belongs in Key Activities or Resources; the Value Proposition is what the dashboard does for the customer's life. <strong>Mistake 3: ignoring the left side.</strong> Founders love the right side (customers, value, revenue) and rush the left (resources, activities, partners, costs) — but the left side is where businesses actually die. <strong>Mistake 4: a canvas that never changes.</strong> The canvas is a living document. Date your versions, revisit monthly, and watch confidence scores climb as evidence replaces guessing. <strong>Mistake 5: building it alone.</strong> The canvas is a discussion tool. Print the poster, stick it on a wall, and argue about it with your co-founders — the disagreements are the point.</p>
+
+  <h3 class="font-bold text-xl mt-7 mb-2">Who uses the business model canvas?</h3>
+  <p class="mb-4 text-[17px] leading-relaxed">Startup founders use it to find product-market fit without writing a business plan. Corporate innovation teams use it to pitch new ventures internally in a format executives can absorb in five minutes. Consultants use it to diagnose struggling companies — a quick canvas workshop reveals whether the problem is the offer, the customer, or the economics. Business schools teach it because it compresses an MBA's worth of strategy into one page. And solo builders use a free business model canvas builder to think clearly before spending money: an hour with nine boxes is the cheapest consulting you will ever get.</p>
+
+  <h3 class="font-bold text-xl mt-7 mb-2">How to use NineBlock, step by step</h3>
+  <p class="mb-4 text-[17px] leading-relaxed">Start with block 01, Customer Segments, and work toward block 09 — or jump anywhere; the canvas has no mandatory order. Click any block's <strong>Guide</strong> button to open coach-style prompts plus a worked example from a fictional meal-kit company, then add your own entries. For each entry, drag the confidence slider to reflect your real evidence level and mark its importance. When the canvas feels full, hit <strong>Riskiest assumptions</strong>: NineBlock will rank every entry by importance times unproven share and highlight the top threats directly on the grid. Those highlighted cards are your to-do list — go validate them with customer interviews, landing pages, or concierge tests, then raise their confidence scores. Save each iteration as a named canvas (v1, v2, post-interviews…) so you can watch the model evolve, and when it is ready, hit <strong>Print poster</strong> for a clean one-page layout to pin on the wall or share with your team. Everything runs in your browser with unlimited free usage — no account, no paywall, no watermark.</p>
+
+  <!-- ============ FAQs ============ -->
+  <section class="mt-10 border-t-2 border-ink pt-6" id="faqs">
+    <h2 class="font-black text-2xl sm:text-3xl mb-5">Frequently asked questions</h2>
+    <div class="space-y-5 text-[16px] leading-relaxed">
+      <div>
+        <h3 class="font-bold text-lg mb-1">What is a business model canvas?</h3>
+        <p>A business model canvas is a one-page strategic template with nine building blocks — customer segments, value propositions, channels, customer relationships, revenue streams, key resources, key activities, key partnerships, and cost structure — that together describe how a business creates, delivers, and captures value. It was introduced by Alexander Osterwalder and Yves Pigneur in <em>Business Model Generation</em> (2010) and is now the standard way founders sketch a business model before writing a full plan.</p>
+      </div>
+      <div>
+        <h3 class="font-bold text-lg mb-1">Is there a free business model canvas template I can print?</h3>
+        <p>Yes. NineBlock is a free online business model canvas builder with a dedicated poster print layout: click "Print poster" and your nine-block canvas renders as a clean one-page sheet, including your canvas name and date — no signup, no watermark, and no PDF converter needed. You can also export any canvas as JSON for backup or sharing.</p>
+      </div>
+      <div>
+        <h3 class="font-bold text-lg mb-1">What is the difference between a business model canvas and a lean canvas?</h3>
+        <p>The lean canvas, adapted by Ash Maurya for startups, swaps four blocks: Key Partners becomes Problem, Key Activities becomes Solution, Key Resources becomes Key Metrics, and Customer Relationships becomes Unfair Advantage. Use the lean canvas when you are still searching for product-market fit, and the classic business model canvas when you are mapping, pitching, or scaling an existing business. Many teams use both in sequence.</p>
+      </div>
+      <div>
+        <h3 class="font-bold text-lg mb-1">How do I know which assumption to test first?</h3>
+        <p>Score every canvas entry on two axes: how important it is (what breaks if it is wrong?) and how confident you are (how much evidence backs it?). Test the high-importance, low-confidence entries first — those are your riskiest assumptions. NineBlock automates this: its riskiest-assumption finder ranks every entry by importance × unproven share and highlights the top threats on your canvas.</p>
+      </div>
+      <div>
+        <h3 class="font-bold text-lg mb-1">Can I save multiple business model canvases?</h3>
+        <p>Yes. NineBlock keeps unlimited named canvases in your browser's local storage — create, rename, duplicate, delete, and switch between versions (for example "v1," "after customer interviews," "investor pitch"). Everything stays on your device; nothing is uploaded to any server.</p>
+      </div>
+      <div>
+        <h3 class="font-bold text-lg mb-1">Do I need to sign up to use NineBlock?</h3>
+        <p>No. NineBlock offers unlimited free usage with no account, no paywall, and no watermark. Open the page, draft your canvas, print your poster, and come back any time — your saved canvases persist in the same browser.</p>
+      </div>
+    </div>
+  </section>
+</article>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is a business model canvas?", "acceptedAnswer": { "@type": "Answer", "text": "A business model canvas is a one-page strategic template with nine building blocks — customer segments, value propositions, channels, customer relationships, revenue streams, key resources, key activities, key partnerships, and cost structure — that together describe how a business creates, delivers, and captures value. It was introduced by Alexander Osterwalder and Yves Pigneur in Business Model Generation (2010)." } },
+    { "@type": "Question", "name": "Is there a free business model canvas template I can print?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. NineBlock is a free online business model canvas builder with a dedicated poster print layout: click Print poster and your nine-block canvas renders as a clean one-page sheet, including your canvas name and date — no signup, no watermark, and no PDF converter needed." } },
+    { "@type": "Question", "name": "What is the difference between a business model canvas and a lean canvas?", "acceptedAnswer": { "@type": "Answer", "text": "The lean canvas, adapted by Ash Maurya for startups, swaps four blocks: Key Partners becomes Problem, Key Activities becomes Solution, Key Resources becomes Key Metrics, and Customer Relationships becomes Unfair Advantage. Use the lean canvas when searching for product-market fit, and the classic business model canvas when mapping, pitching, or scaling an existing business." } },
+    { "@type": "Question", "name": "How do I know which assumption to test first?", "acceptedAnswer": { "@type": "Answer", "text": "Score every canvas entry on importance (what breaks if it is wrong?) and confidence (how much evidence backs it?). Test the high-importance, low-confidence entries first. NineBlock's riskiest-assumption finder ranks every entry by importance times unproven share and highlights the top threats on your canvas." } },
+    { "@type": "Question", "name": "Can I save multiple business model canvases?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. NineBlock keeps unlimited named canvases in your browser's local storage — create, rename, duplicate, delete, and switch between versions. Everything stays on your device; nothing is uploaded to any server." } },
+    { "@type": "Question", "name": "Do I need to sign up to use NineBlock?", "acceptedAnswer": { "@type": "Answer", "text": "No. NineBlock offers unlimited free usage with no account, no paywall, and no watermark. Your saved canvases persist in the same browser." } }
+  ]
+}
+</script>
+
+<footer class="no-print border-t-2 border-ink mt-6">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-inksoft">
+    <span class="font-serif font-bold text-ink text-sm">NineBlock — draw your business model like an architect.</span>
+    <span>Free forever · No signup · Your data never leaves your browser</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var STORE_KEY = 'nineblock-slots-v1';
+  var AREA = {
+    'key-partnerships': 'kp', 'key-activities': 'ka', 'key-resources': 'kr',
+    'value-propositions': 'vp', 'customer-relationships': 'cr', 'channels': 'ch',
+    'customer-segments': 'cs', 'cost-structure': 'cost', 'revenue-streams': 'rev'
+  };
+  var IMP_COLOR = { high: '#C0392B', medium: '#E07A3F', low: '#2E7D4F' };
+
+  var store = loadStore();
+  var highlightIds = {};
+  var riskOpen = false;
+  var entryForm = { mode: 'add', blockId: null, entryId: null, importance: 'medium' };
+
+  function loadStore() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        var s = JSON.parse(raw);
+        if (s && Array.isArray(s.slots) && s.slots.length) return s;
+      }
+    } catch (e) {}
+    var r = createSlot([], 'My First Canvas', Date.now());
+    return { slots: r.slots, activeId: r.slot.id };
+  }
+  function persist() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {}
+  }
+  function saveCanvas(canvas) {
+    var r = touchSlot(store.slots, store.activeId, canvas, Date.now());
+    if (!r.error) { store.slots = r.slots; persist(); }
+  }
+  function activeSlot() { return getSlot(store.slots, store.activeId) || store.slots[0]; }
+  function activeCanvas() { return activeSlot().canvas; }
+
+  function $(id) { return document.getElementById(id); }
+  function openModal(id) { $(id).classList.remove('hidden'); }
+  function closeModal(id) { $(id).classList.add('hidden'); }
+  document.querySelectorAll('[data-close]').forEach(function (b) {
+    b.addEventListener('click', function () { closeModal(b.getAttribute('data-close')); });
+  });
+  document.querySelectorAll('.modal-backdrop').forEach(function (m) {
+    m.addEventListener('click', function (e) { if (e.target === m) m.classList.add('hidden'); });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop').forEach(function (m) { m.classList.add('hidden'); });
+  });
+
+  function fmtDate(ts) {
+    try { return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    catch (e) { return ''; }
+  }
+  function confColor(c) {
+    if (c < 25) return '#C0392B';
+    if (c < 50) return '#E07A3F';
+    if (c < 75) return '#D9A821';
+    return '#2E7D4F';
+  }
+
+  /* ---------- grid rendering ---------- */
+  function entryCardHTML(blockId, entry) {
+    var c = scoreConfidence(entry);
+    var flash = highlightIds[entry.id] ? ' risk-flash' : '';
+    return '' +
+      '<div class="entry-card' + flash + ' p-2.5 mb-2" id="card-' + entry.id + '" data-entry="' + entry.id + '">' +
+        '<div class="confbar mb-1.5" title="Confidence ' + c + '%"><div style="width:' + c + '%;background:' + confColor(c) + '"></div></div>' +
+        '<p class="text-[13px] leading-snug font-mono">' + escHtml(entry.text) + '</p>' +
+        '<div class="mt-1.5 flex items-center justify-between text-[10px] uppercase tracking-wider">' +
+          '<span class="font-bold" style="color:' + confColor(c) + '">' + c + '% · ' + escHtml(confidenceBand(c)) + '</span>' +
+          '<span class="flex items-center gap-2">' +
+            '<span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full" style="background:' + IMP_COLOR[entry.importance] + '"></span>' + entry.importance + '</span>' +
+            '<button class="underline" data-edit="' + entry.id + '" title="Edit">edit</button>' +
+            '<button class="underline" data-del="' + entry.id + '" title="Delete">del</button>' +
+          '</span>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function renderGrid() {
+    var canvas = activeCanvas();
+    var grid = $('canvas-grid');
+    var html = '';
+    BLOCKS.forEach(function (b) {
+      var entries = (canvas.blocks[b.id] || []).map(function (e) { return entryCardHTML(b.id, e); }).join('');
+      if (!entries) entries = '<p class="text-[11px] text-inksoft/70 italic py-2 text-center border border-dashed border-ink/30 rounded">No hypotheses yet</p>';
+      html += '' +
+        '<div class="block-card p-3 sm:p-4" style="grid-area:' + AREA[b.id] + '" data-block="' + b.id + '">' +
+          '<span class="reg tl"></span><span class="reg tr"></span><span class="reg bl"></span><span class="reg br"></span>' +
+          '<div class="flex items-start justify-between gap-2">' +
+            '<div><div class="text-[10px] font-bold tracking-[0.22em] text-draft">BLOCK ' + b.num + '</div>' +
+            '<h2 class="font-serif font-black text-base sm:text-lg leading-tight">' + escHtml(b.name) + '</h2>' +
+            '<p class="font-serif italic text-xs text-inksoft">' + escHtml(b.tagline) + '</p></div>' +
+            '<button class="btn-draft bg-paper text-[11px] font-bold px-2 py-1 shrink-0" data-guide="' + b.id + '" title="Coach prompts + example">Guide</button>' +
+          '</div>' +
+          '<div class="mt-3 flex-1">' + entries + '</div>' +
+          '<button class="mt-1 w-full border-[1.5px] border-dashed border-ink/50 rounded-md text-xs py-2 hover:bg-paper transition" data-add="' + b.id + '">+ Add hypothesis</button>' +
+        '</div>';
+    });
+    grid.innerHTML = html;
+    grid.querySelectorAll('[data-add]').forEach(function (btn) {
+      btn.addEventListener('click', function () { openEntryForm('add', btn.getAttribute('data-add')); });
+    });
+    grid.querySelectorAll('[data-guide]').forEach(function (btn) {
+      btn.addEventListener('click', function () { openCoach(btn.getAttribute('data-guide')); });
+    });
+    grid.querySelectorAll('[data-edit]').forEach(function (btn) {
+      btn.addEventListener('click', function () { openEntryForm('edit', null, btn.getAttribute('data-edit')); });
+    });
+    grid.querySelectorAll('[data-del]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-del');
+        var r = deleteEntry(activeCanvas(), id);
+        if (r.error) { toast(r.error); return; }
+        delete highlightIds[id];
+        saveCanvas(r.canvas); renderAll();
+      });
+    });
+    renderHealth();
+    if (riskOpen) renderRisk();
+  }
+
+  /* ---------- health strip ---------- */
+  function renderHealth() {
+    var canvas = activeCanvas();
+    var h = canvasHealth(canvas);
+    $('health-strip').innerHTML =
+      '<span>📝 <strong>' + h.totalEntries + '</strong> hypotheses</span>' +
+      '<span>🧱 <strong>' + h.blocksCovered + '/' + h.blocksTotal + '</strong> blocks drafted</span>' +
+      '<span>🎯 avg confidence <strong>' + h.averageConfidence + '%</strong></span>' +
+      (h.criticalRisks
+        ? '<button id="health-risk-link" class="underline font-bold text-[#C0392B]">⚠️ ' + h.criticalRisks + ' critical risk' + (h.criticalRisks > 1 ? 's' : '') + ' — view</button>'
+        : '<span>✅ no critical risks</span>');
+    var link = $('health-risk-link');
+    if (link) link.addEventListener('click', openRisk);
+    var v = validateCanvas(canvas);
+    var box = $('canvas-issues');
+    if (!v.issues.length) { box.innerHTML = ''; return; }
+    var shown = v.issues.slice(0, 3).map(function (i) {
+      return '<li>' + escHtml(i.message) + '</li>';
+    }).join('');
+    var more = v.issues.length > 3 ? '<li class="italic">…and ' + (v.issues.length - 3) + ' more</li>' : '';
+    box.innerHTML = '<ul class="list-disc pl-5 text-inksoft space-y-0.5">' + shown + more + '</ul>';
+  }
+
+  function toast(msg) {
+    var t = document.createElement('div');
+    t.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] bg-ink text-paper text-sm px-4 py-2.5 rounded-md border-2 border-draft';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2600);
+  }
+
+  /* ---------- coach modal ---------- */
+  var coachBlockId = null;
+  function openCoach(blockId) {
+    var b = blockById(blockId);
+    if (!b) return;
+    coachBlockId = blockId;
+    $('coach-kicker').textContent = 'Block ' + b.num + ' · guided draft';
+    $('coach-title').textContent = b.name;
+    $('coach-tagline').textContent = b.tagline;
+    $('coach-prompts').innerHTML = b.prompts.map(function (p, i) {
+      return '<li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-ink text-paper text-xs font-bold flex items-center justify-center">' + (i + 1) + '</span><span>' + escHtml(p) + '</span></li>';
+    }).join('');
+    $('coach-example').textContent = b.example;
+    openModal('coach-modal');
+  }
+  $('coach-add').addEventListener('click', function () {
+    closeModal('coach-modal');
+    if (coachBlockId) openEntryForm('add', coachBlockId);
+  });
+
+  /* ---------- entry modal ---------- */
+  function setImpUI(imp) {
+    entryForm.importance = imp;
+    document.querySelectorAll('.imp-btn').forEach(function (b) {
+      var on = b.getAttribute('data-imp') === imp;
+      b.classList.toggle('bg-ink', on);
+      b.classList.toggle('text-paper', on);
+      b.classList.toggle('bg-paper', !on);
+    });
+  }
+  function openEntryForm(mode, blockId, entryId) {
+    entryForm.mode = mode;
+    $('entry-error').classList.add('hidden');
+    if (mode === 'add') {
+      var b = blockById(blockId);
+      entryForm.blockId = blockId; entryForm.entryId = null;
+      $('entry-modal-title').textContent = 'Add hypothesis';
+      $('entry-block-name').textContent = b.num + ' · ' + b.name;
+      $('entry-text').value = '';
+      $('entry-conf').value = 50;
+      setImpUI('medium');
+    } else {
+      var found = findEntry(activeCanvas(), entryId);
+      if (!found) { toast('Entry not found.'); return; }
+      var bb = blockById(found.blockId);
+      entryForm.blockId = found.blockId; entryForm.entryId = entryId;
+      $('entry-modal-title').textContent = 'Edit hypothesis';
+      $('entry-block-name').textContent = bb.num + ' · ' + bb.name;
+      $('entry-text').value = found.entry.text;
+      $('entry-conf').value = found.entry.confidence;
+      setImpUI(found.entry.importance);
+    }
+    updateConfUI();
+    $('entry-count').textContent = $('entry-text').value.length;
+    openModal('entry-modal');
+    setTimeout(function () { $('entry-text').focus(); }, 50);
+  }
+  function updateConfUI() {
+    var v = clampConfidence($('entry-conf').value);
+    $('entry-conf-val').textContent = v;
+    $('entry-conf-band').textContent = confidenceBand(v);
+  }
+  $('entry-conf').addEventListener('input', updateConfUI);
+  $('entry-text').addEventListener('input', function () { $('entry-count').textContent = $('entry-text').value.length; });
+  document.querySelectorAll('.imp-btn').forEach(function (b) {
+    b.addEventListener('click', function () { setImpUI(b.getAttribute('data-imp')); });
+  });
+  $('entry-save').addEventListener('click', function () {
+    var text = $('entry-text').value;
+    var conf = clampConfidence($('entry-conf').value);
+    var imp = entryForm.importance;
+    var r;
+    if (entryForm.mode === 'add') {
+      r = addEntry(activeCanvas(), entryForm.blockId, text, conf, imp);
+    } else {
+      r = updateEntry(activeCanvas(), entryForm.entryId, { text: text, confidence: conf, importance: imp });
+    }
+    if (r.error) {
+      var e = $('entry-error');
+      e.textContent = r.error;
+      e.classList.remove('hidden');
+      return;
+    }
+    saveCanvas(r.canvas);
+    closeModal('entry-modal');
+    renderAll();
+  });
+
+  /* ---------- risk panel ---------- */
+  function openRisk() {
+    riskOpen = true;
+    var rows = findRiskiestAssumptions(activeCanvas(), 5);
+    highlightIds = {};
+    rows.forEach(function (r) { highlightIds[r.entry.id] = true; });
+    $('risk-panel').classList.remove('hidden');
+    renderGrid();
+    $('risk-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function renderRisk() {
+    var rows = findRiskiestAssumptions(activeCanvas(), 5);
+    var list = $('risk-list');
+    if (!rows.length) {
+      list.innerHTML = '<li class="text-sm text-inksoft italic">Your canvas is empty — add some hypotheses first, then come back to hunt for risk.</li>';
+      return;
+    }
+    list.innerHTML = rows.map(function (r, i) {
+      var meter = Math.round(r.risk / 300 * 100);
+      var lit = highlightIds[r.entry.id];
+      return '<li class="border border-ink/40 rounded-md bg-white p-3 flex gap-3 items-start">' +
+        '<span class="shrink-0 w-7 h-7 rounded-full bg-draft text-white font-bold flex items-center justify-center text-sm">' + (i + 1) + '</span>' +
+        '<div class="flex-1 min-w-0">' +
+          '<button class="text-left font-bold text-sm hover:underline" data-jump="' + r.entry.id + '">' + escHtml(r.entry.text) + '</button>' +
+          '<div class="text-[11px] text-inksoft mt-0.5">' + escHtml(r.blockName) + ' · confidence ' + r.confidence + '% · importance ' + r.importance + '</div>' +
+          '<div class="confbar mt-1.5" title="Risk score ' + r.risk + '/300"><div style="width:' + meter + '%;background:#C0392B"></div></div>' +
+        '</div>' +
+        '<button class="btn-draft text-[11px] px-2 py-1 shrink-0 ' + (lit ? 'bg-draft text-white' : 'bg-paper') + '" data-spot="' + r.entry.id + '">' + (lit ? '◉ lit' : '○ spotlight') + '</button>' +
+      '</li>';
+    }).join('');
+    list.querySelectorAll('[data-jump]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var card = document.getElementById('card-' + b.getAttribute('data-jump'));
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+    list.querySelectorAll('[data-spot]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-spot');
+        if (highlightIds[id]) delete highlightIds[id]; else highlightIds[id] = true;
+        renderRisk(); renderGrid();
+      });
+    });
+  }
+  $('btn-risk').addEventListener('click', openRisk);
+  $('btn-risk-close').addEventListener('click', function () {
+    riskOpen = false; highlightIds = {};
+    $('risk-panel').classList.add('hidden');
+    renderGrid();
+  });
+
+  /* ---------- slots ---------- */
+  function renderSlotSelect() {
+    var sel = $('slot-select');
+    sel.innerHTML = sortSlots(store.slots).map(function (s) {
+      return '<option value="' + s.id + '"' + (s.id === store.activeId ? ' selected' : '') + '>' + escHtml(s.name) + '</option>';
+    }).join('');
+  }
+  $('slot-select').addEventListener('change', function () {
+    store.activeId = $('slot-select').value;
+    highlightIds = {}; riskOpen = false;
+    $('risk-panel').classList.add('hidden');
+    persist(); renderAll();
+  });
+  function renderSlotList() {
+    var ul = $('slot-list');
+    ul.innerHTML = sortSlots(store.slots).map(function (s) {
+      var n = canvasEntries(s.canvas).length;
+      var active = s.id === store.activeId;
+      return '<li class="border ' + (active ? 'border-draft border-2' : 'border-ink/40') + ' rounded-md bg-white p-3 flex items-center gap-2">' +
+        '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">' + escHtml(s.name) + (active ? ' <span class="text-[10px] text-draft font-mono">● open</span>' : '') + '</div>' +
+        '<div class="text-[11px] text-inksoft">' + n + ' hypotheses · updated ' + fmtDate(s.updatedAt) + '</div></div>' +
+        (active ? '' : '<button class="text-[11px] underline" data-open="' + s.id + '">open</button>') +
+        '<button class="text-[11px] underline" data-rename="' + s.id + '">rename</button>' +
+        '<button class="text-[11px] underline" data-dupe="' + s.id + '">duplicate</button>' +
+        '<button class="text-[11px] underline text-red-700" data-delslot="' + s.id + '">delete</button>' +
+      '</li>';
+    }).join('');
+    ul.querySelectorAll('[data-open]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        store.activeId = b.getAttribute('data-open');
+        highlightIds = {}; riskOpen = false;
+        $('risk-panel').classList.add('hidden');
+        persist(); closeModal('slots-modal'); renderAll();
+      });
+    });
+    ul.querySelectorAll('[data-rename]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-rename');
+        var s = getSlot(store.slots, id);
+        var name = prompt('Rename canvas:', s ? s.name : '');
+        if (name === null) return;
+        var r = renameSlot(store.slots, id, name, Date.now());
+        if (r.error) { toast(r.error); return; }
+        store.slots = r.slots; persist(); renderSlotList(); renderSlotSelect();
+      });
+    });
+    ul.querySelectorAll('[data-dupe]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var r = duplicateSlot(store.slots, b.getAttribute('data-dupe'), Date.now());
+        if (r.error) { toast(r.error); return; }
+        store.slots = r.slots; persist(); renderSlotList(); renderSlotSelect();
+        toast('Duplicated.');
+      });
+    });
+    ul.querySelectorAll('[data-delslot]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var s = getSlot(store.slots, b.getAttribute('data-delslot'));
+        if (!confirm('Delete canvas "' + (s ? s.name : '') + '"? This cannot be undone.')) return;
+        var r = deleteSlot(store.slots, b.getAttribute('data-delslot'));
+        if (r.error) { toast(r.error); return; }
+        store.slots = r.slots;
+        if (store.activeId === b.getAttribute('data-delslot')) store.activeId = sortSlots(store.slots)[0].id;
+        persist(); closeModal('slots-modal'); renderAll();
+      });
+    });
+  }
+  $('btn-manage').addEventListener('click', function () {
+    $('slot-new-error').classList.add('hidden');
+    renderSlotList(); openModal('slots-modal');
+  });
+  $('slot-create').addEventListener('click', function () {
+    var r = createSlot(store.slots, $('slot-new-name').value, Date.now());
+    if (r.error) {
+      var e = $('slot-new-error');
+      e.textContent = r.error; e.classList.remove('hidden');
+      return;
+    }
+    store.slots = r.slots; store.activeId = r.slot.id;
+    $('slot-new-name').value = '';
+    highlightIds = {}; riskOpen = false;
+    $('risk-panel').classList.add('hidden');
+    persist(); renderSlotList(); renderSlotSelect(); renderAll();
+  });
+
+  /* ---------- import / export / sample / print ---------- */
+  $('btn-export').addEventListener('click', function () {
+    var s = activeSlot();
+    var blob = new Blob([serializeCanvas(s.canvas)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-canvas.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+  $('btn-import').addEventListener('click', function () { $('file-import').click(); });
+  $('file-import').addEventListener('change', function () {
+    var f = $('file-import').files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var r = deserializeCanvas(String(reader.result || ''));
+      if (r.error) { toast(r.error); return; }
+      if (!confirm('Replace the current canvas with the imported one?')) return;
+      saveCanvas(r.canvas);
+      highlightIds = {}; riskOpen = false;
+      $('risk-panel').classList.add('hidden');
+      renderAll(); toast('Canvas imported.');
+    };
+    reader.readAsText(f);
+    $('file-import').value = '';
+  });
+  $('btn-sample').addEventListener('click', function () {
+    if (!confirm('Load the worked FreshBox example into the current canvas? Current entries will be replaced.')) return;
+    saveCanvas(sampleCanvas());
+    highlightIds = {}; riskOpen = false;
+    $('risk-panel').classList.add('hidden');
+    renderAll(); toast('Sample canvas loaded — try the riskiest-assumption finder.');
+  });
+  $('btn-print').addEventListener('click', function () {
+    var s = activeSlot();
+    var n = canvasEntries(s.canvas).length;
+    $('poster-sub').textContent = s.name + ' · ' + n + ' hypotheses · drawn with NineBlock';
+    $('poster-date').textContent = fmtDate(Date.now());
+    window.print();
+  });
+
+  /* ---------- boot ---------- */
+  function renderAll() { renderSlotSelect(); renderGrid(); }
+  renderAll();
+})();
+</script>
+</body>
+</html>
